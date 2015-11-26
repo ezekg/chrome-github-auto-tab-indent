@@ -3,7 +3,7 @@ chrome.tabs.onUpdated.addListener(function(id, details, tab) {
     var tabSpacing = encodeURI("ts=" + items.tabSize);
     var url        = tab.url;
 
-    if (url.indexOf(tabSpacing) > 0 || url.indexOf("/blob/") === -1) {
+    if (url.indexOf(tabSpacing) > 0 || (url.indexOf("/blob/") === -1 && url.indexOf("/commit/") === -1)) {
       return;
     }
 
