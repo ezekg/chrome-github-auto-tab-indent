@@ -1,6 +1,6 @@
 {
   "name": "GitHub Auto Tab Indent",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "manifest_version": 2,
   "description": "Google Chrome extension that automatically adjusts tab indentation when viewing source code on GitHub (and Bitbucket!).",
   "homepage_url": "https://github.com/ezekg/chrome-github-auto-tab-indent",
