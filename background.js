@@ -1,9 +1,37 @@
 chrome.tabs.onUpdated.addListener(function(id, details, tab) {
+
+  /**
+   * Check if current page contains source code
+   *
+   * @return {Bool}
+   */
+  var isSourcePage = function(url) {
+
+    /**
+     * Check if current url contains string
+     *
+     * @return {Bool}
+     */
+    var urlContains = function(str) {
+      return Boolean(~url.indexOf(str));
+    };
+
+    if (urlContains("github.com")) {
+      return urlContains("/blob/") || urlContains("/commit/");
+    }
+
+    if (urlContains("bitbucket.org")) {
+      return urlContains("fileviewer=file-view-default") || (urlContains("/commits/") && urlContains("at=master"));
+    }
+
+    return false;
+  };
+
   chrome.storage.sync.get("tabSize", function(items) {
     var tabSpacing = encodeURI("ts=" + items.tabSize);
     var url        = tab.url;
 
-    if (url.indexOf(tabSpacing) > 0 || (url.indexOf("/blob/") === -1 && url.indexOf("/commit/") === -1)) {
+    if (url.indexOf(tabSpacing) > 0 || !isSourcePage(url)) {
       return;
     }
 
