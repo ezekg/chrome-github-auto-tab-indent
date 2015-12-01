@@ -1,6 +1,6 @@
 # GitHub Auto Tab Indent
 
-Google Chrome extension that automatically adjusts tab indentation when viewing source code on GitHub.
+Google Chrome extension that automatically adjusts tab indentation when viewing source code on GitHub (and Bitbucket!).
 
 # Installation
 
