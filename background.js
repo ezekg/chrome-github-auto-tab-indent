@@ -1,27 +1,33 @@
 chrome.tabs.onUpdated.addListener(function(id, details, tab) {
+  var url = tab.url;
+
+  /**
+   * Check if an array or string contains string
+   *
+   * @param  {Str|Arr} haystack
+   * @param  {Str}     needle
+   *
+   * @return {Bool}
+   */
+  var contains = function(haystack, needle) {
+    return haystack.indexOf(needle) !== -1;
+  };
 
   /**
    * Check if current page contains source code
+   *
+   * @param  {Str} url
    *
    * @return {Bool}
    */
   var isSourcePage = function(url) {
 
-    /**
-     * Check if current url contains string
-     *
-     * @return {Bool}
-     */
-    var urlContains = function(str) {
-      return Boolean(~url.indexOf(str));
-    };
-
-    if (urlContains("github.com")) {
-      return urlContains("/blob/") || urlContains("/commit/");
+    if (contains(url, "github.com")) {
+      return contains(url, "/blob/") || contains(url, "/commit/");
     }
 
-    if (urlContains("bitbucket.org")) {
-      return urlContains("fileviewer=file-view-default") || (urlContains("/commits/") && urlContains("at=master"));
+    if (contains(url, "bitbucket.org")) {
+      return contains(url, "fileviewer=file-view-default") || (contains(url, "/commits/") && !contains(url, "/commits/all"));
     }
 
     return false;
@@ -29,18 +35,17 @@ chrome.tabs.onUpdated.addListener(function(id, details, tab) {
 
   chrome.storage.sync.get("tabSize", function(items) {
     var tabSpacing = encodeURI("ts=" + items.tabSize);
-    var url        = tab.url;
 
-    if (url.indexOf(tabSpacing) > 0 || !isSourcePage(url)) {
+    if (contains(url, tabSpacing) || !isSourcePage(url)) {
       return;
     }
 
-    var hashStart   = url.indexOf("#") === -1 ? url.length : url.indexOf("#");
-    var querySymbol = url.indexOf("?") === -1 ? "?" : "&";
+    var hashStart   = contains(url, "#") ? url.indexOf("#") : url.length;
+    var querySymbol = contains(url, "?") ? "&" : "?";
     var newURL      = url.substring(0, hashStart) + querySymbol + tabSpacing + url.substring(hashStart);
 
     chrome.tabs.update(id, {
-      url: newURL
+      url: "javascript:location.replace('" + newURL + "')"
     });
   });
 });
