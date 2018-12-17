@@ -1,51 +1,36 @@
-chrome.tabs.onUpdated.addListener(function(id, details, tab) {
-  var url = tab.url;
+const isSourcePage = url => {
+  if (url.includes('github.com')) {
+    return url.includes('/blob/') || url.includes('/commit/')
+  }
 
-  /**
-   * Check if an array or string contains string
-   *
-   * @param  {Str|Arr} haystack
-   * @param  {Str}     needle
-   *
-   * @return {Bool}
-   */
-  var contains = function(haystack, needle) {
-    return haystack.indexOf(needle) !== -1;
-  };
+  if (url.includes('bitbucket.org')) {
+    return (url.includes('/commits/') && !url.includes('/commits/all')) ||
+            url.includes('fileviewer=file-view-default')
+  }
 
-  /**
-   * Check if current page contains source code
-   *
-   * @param  {Str} url
-   *
-   * @return {Bool}
-   */
-  var isSourcePage = function(url) {
+  return false
+}
 
-    if (contains(url, "github.com")) {
-      return contains(url, "/blob/") || contains(url, "/commit/");
+chrome.tabs.onUpdated.addListener((id, details, tab) => {
+  const url = tab.url
+
+  chrome.storage.sync.get('tabSize', function(items) {
+    if (!isSourcePage(url)) {
+      return
     }
 
-    if (contains(url, "bitbucket.org")) {
-      return contains(url, "fileviewer=file-view-default") || (contains(url, "/commits/") && !contains(url, "/commits/all"));
+    const queryParam = `ts=${items.tabSize}`
+    if (url.includes(queryParam)) {
+      return
     }
 
-    return false;
-  };
-
-  chrome.storage.sync.get("tabSize", function(items) {
-    var tabSpacing = encodeURI("ts=" + items.tabSize);
-
-    if (contains(url, tabSpacing) || !isSourcePage(url)) {
-      return;
-    }
-
-    var hashStart   = contains(url, "#") ? url.indexOf("#") : url.length;
-    var querySymbol = contains(url, "?") ? "&" : "?";
-    var newURL      = url.substring(0, hashStart) + querySymbol + tabSpacing + url.substring(hashStart);
+    const hashStart = url.includes('#') ? url.indexOf('#') : url.length
+    const querySymbol = url.includes('?') ? '&' : '?'
+    const oldURL = encodeURIComponent(url.substring(0, hashStart))
+    const newURL = oldURL + querySymbol + queryParam + url.substring(hashStart)
 
     chrome.tabs.update(id, {
-      url: "javascript:location.replace('" + newURL + "')"
-    });
-  });
-});
+      url: `javascript:location.replace('${newURL}')`
+    })
+  })
+})
